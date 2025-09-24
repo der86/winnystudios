@@ -12,9 +12,7 @@ export default function ProductCard({ product }) {
         <div className="w-32 h-32 bg-gray-200 mb-4 flex items-center justify-center mx-auto">
           {product.image && (
             <img
-              src={`${
-                import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
-              }${product.image}`}
+              src={`${API_URL}${product.image}`}
               alt={product.name}
               className="h-40 w-full object-cover rounded mb-3"
               crossOrigin="anonymous"
@@ -25,7 +23,7 @@ export default function ProductCard({ product }) {
           )}
         </div>
         <h3 className="font-semibold mb-2">{product.name}</h3>
-        <p className="mb-2">${product.price}</p>
+        <p className="mb-2">ksh{product.price}</p>
       </Link>
 
       {/* 🛒 Add to Cart stays independent */}

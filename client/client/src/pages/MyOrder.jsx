@@ -1,6 +1,7 @@
 // src/pages/MyOrders.jsx
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function MyOrders() {
@@ -18,8 +19,11 @@ export default function MyOrders() {
         });
         const data = await res.json();
 
+        console.log("📦 Orders API response:", data);
+
         if (res.ok) {
-          setOrders(data);
+          // ✅ Use the `data` array inside the response
+          setOrders(data.data || []);
         } else {
           console.error("❌ Failed to fetch orders:", data.error);
         }
@@ -82,12 +86,12 @@ export default function MyOrders() {
             {/* Customer Info */}
             <div className="mb-4 text-sm text-gray-700">
               <p>
-                <b>Phone:</b> {order.customer.phone}
+                <b>Phone:</b> {order.customer?.phone}
               </p>
               <p>
-                <b>Address:</b> {order.customer.address}
+                <b>Address:</b> {order.customer?.address}
               </p>
-              {order.customer.notes && (
+              {order.customer?.notes && (
                 <p>
                   <b>Notes:</b> {order.customer.notes}
                 </p>
@@ -100,7 +104,7 @@ export default function MyOrders() {
               <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
                 {order.items.map((item, idx) => (
                   <li key={idx}>
-                    {item.name} x{item.qty} — ${item.price * item.qty}
+                    {item.name} x{item.qty} — ksh{item.price * item.qty}
                   </li>
                 ))}
               </ul>
@@ -109,7 +113,7 @@ export default function MyOrders() {
             {/* Total + Date */}
             <div className="flex justify-between items-center text-sm text-gray-600">
               <p>
-                <b>Total:</b> ${order.total}
+                <b>Total:</b> ksh{order.total}
               </p>
               <p>
                 <b>Date:</b>{" "}

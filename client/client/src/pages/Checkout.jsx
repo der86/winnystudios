@@ -1,4 +1,3 @@
-// src/pages/Checkout.jsx
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
@@ -10,22 +9,12 @@ export default function Checkout() {
   const { cart, clearCart } = useCart();
   const { token } = useAuth();
   const navigate = useNavigate();
-
-  const [form, setForm] = useState({
-    phone: "",
-    address: "",
-    notes: "",
-  });
-
-  const [loading, setLoading] = useState(false);
-
-  // ✅ Handle form changes dynamically
+  const [form, setForm] = useState({ phone: "", address: "", notes: "" });
+  const [loading, setLoading] = useState(false); // ✅ Handle form changes dynamically
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // ✅ Submit order
+  }; // ✅ Submit order
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (cart.length === 0) {
@@ -57,7 +46,6 @@ export default function Checkout() {
 
     try {
       setLoading(true);
-
       const res = await fetch(`${API_URL}/api/orders`, {
         method: "POST",
         headers: {
@@ -66,13 +54,10 @@ export default function Checkout() {
         },
         body: JSON.stringify(orderData),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         throw new Error(data.error || "Unknown error occurred");
       }
-
       // ✅ Clear cart ONLY if order was successful
       clearCart();
       navigate("/my-orders");
@@ -92,7 +77,6 @@ export default function Checkout() {
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-100 py-10">
       <h1 className="text-2xl font-bold mb-6">Checkout</h1>
-
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-lg shadow-md w-full max-w-md"
@@ -107,7 +91,6 @@ export default function Checkout() {
           required
           className="w-full mb-3 p-2 border rounded"
         />
-
         {/* Address */}
         <textarea
           name="address"
@@ -117,7 +100,6 @@ export default function Checkout() {
           required
           className="w-full mb-3 p-2 border rounded"
         />
-
         {/* Notes */}
         <textarea
           name="notes"
@@ -126,19 +108,16 @@ export default function Checkout() {
           onChange={handleChange}
           className="w-full mb-3 p-2 border rounded"
         />
-
         {/* Order Summary */}
         <h2 className="font-semibold mb-2">Order Summary:</h2>
         <div className="text-sm mb-3">
           {cart.map((item) => (
             <p key={item._id || item.id}>
-              {item.name} x{item.qty ?? 1} — ${item.price * (item.qty ?? 1)}
+              {item.name} x{item.qty ?? 1} — ksh{item.price * (item.qty ?? 1)}
             </p>
           ))}
         </div>
-
-        <p className="mt-2 font-bold">Total: ${total.toFixed(2)}</p>
-
+        <p className="mt-2 font-bold">Total: ksh{total.toFixed(2)}</p>
         <button
           type="submit"
           disabled={loading}

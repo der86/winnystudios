@@ -1,4 +1,5 @@
 // controllers/orderController.js
+import User from "../models/User.js";
 import { z } from "zod";
 import Order from "../models/Order.js";
 import { sendOrderEmail } from "../utils/mailer.js";
@@ -68,57 +69,65 @@ Total: $${order.total}
 };
 
 // ---------------- Create New Order ----------------
-export const createOrder = async (req, res, next) => {
+export const createOrder = async (req, res) => {
   try {
-    const parsed = orderSchema.parse(req.body);
+    const { items, total, customer } = req.body;
 
-    const total = parsed.items.reduce(
-      (sum, i) => sum + i.price * (i.qty ?? 1),
-      0
-    );
+    if (!items || items.length === 0) {
+      return res.status(400).json({ error: "No items in order" });
+    }
 
-    const order = await Order.create({
-      user: req.user._id,
+    // ✅ Get logged-in user details
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
+
+    const order = new Order({
+      user: user._id,
       customer: {
-        name: req.user.name,
-        email: req.user.email,
-        phone: parsed.phone,
-        address: parsed.address,
-        notes: parsed.notes || "",
+        name: user.name, // auto-filled
+        email: user.email, // auto-filled
+        phone: customer.phone,
+        address: customer.address,
+        notes: customer.notes,
       },
-      items: parsed.items,
+      items,
       total,
     });
 
-    // fire-and-forget email (don’t block response)
-    sendOrderNotification(order, req.user).catch((err) =>
-      console.error("⚠️ Email not sent:", err.message)
-    );
-
-    res.status(201).json({
-      success: true,
-      message: "Order created successfully",
-      data: order,
-    });
+    await order.save();
+    res.status(201).json(order);
   } catch (err) {
-    if (err?.issues) {
-      return buildErrorResponse(res, 400, "Validation failed", err.issues);
-    }
-    console.error("❌ Error creating order:", err.message);
-    next(err);
+    console.error("❌ Order creation error:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
-
 // ---------------- Get Logged-in User Orders ----------------
 export const getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id }).sort({
-      createdAt: -1,
+    const orders = await Order.find({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .lean(); // lean() for faster response
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No orders found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: orders,
     });
-    res.json({ success: true, data: orders });
   } catch (err) {
-    console.error("❌ Failed to fetch user orders:", err.message);
-    buildErrorResponse(res, 500, "Failed to fetch orders");
+    console.error("❌ Failed to fetch user orders:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch orders",
+      error: err.message,
+    });
   }
 };
 
