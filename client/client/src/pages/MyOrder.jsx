@@ -101,10 +101,27 @@ export default function MyOrders() {
             {/* Items */}
             <div className="mb-4">
               <h3 className="font-semibold mb-2">Items</h3>
-              <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
+              <ul className="space-y-3">
                 {order.items.map((item, idx) => (
-                  <li key={idx}>
-                    {item.name} x{item.qty} — ksh{item.price * item.qty}
+                  <li
+                    key={idx}
+                    className="flex items-center gap-3 text-sm text-gray-600"
+                  >
+                    {/* ✅ Show first image if exists */}
+                    {item.images && item.images.length > 0 && (
+                      <img
+                        src={item.images[0]}
+                        alt={item.name}
+                        className="h-12 w-12 object-cover rounded"
+                        onError={(e) => (e.target.src = "/fallback.png")}
+                      />
+                    )}
+                    <div>
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-gray-500">
+                        x{item.qty} — ksh{item.price * item.qty}
+                      </p>
+                    </div>
                   </li>
                 ))}
               </ul>
